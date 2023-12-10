@@ -1,0 +1,25 @@
+Encoding: UTF-8
+Package: EWDbk
+Title: Educational Value-Added indicators for Polish secondary schools
+Version: 0.1.99
+Authors@R: c(
+  person("Tomasz", "Żółtak", email = "tomek@zozlak.org", role = c("aut", "cre")))
+Description: Functions enabling calculation of the Polish Educational
+  Value-Added indicators for secondary schools.
+Depends:
+    R (>= 3.3.0)
+Imports:
+    ZPD (>= 1.8.0),
+    dplyr (>= 1.1.1),
+    tidyr (>= 1.3.0),
+    haven (>= 2.5.0),
+    lme4 (>= 1.1-26),
+    mvtnorm (>= 1.1-3)
+Suggests:
+    testthat,
+    knitr
+License: MIT + file LICENSE
+Language: pl
+VignetteBuilder: knitr
+NeedsCompilation: no
+RoxygenNote: 7.2.3

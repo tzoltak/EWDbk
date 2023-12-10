@@ -1,0 +1,27 @@
+# Do zrobienia
+
+## Na teraz
+
+- Poprawić dokumentację pakietu.
+- Obłożyć funkcje większą ilością asercji.
+- Dodać sprawdzanie zgodności plików z danymi już znalezionych na dysku z nowo
+  przygotowanymi w przypadku, gdy `nadpisz=FALSE` (w tym wartości parametrów!).
+
+## Na być może kiedyś
+
+- Dodać wywoływanie `pvreg` z wewnątrz R za pośrednictwem pakietu *reticulate*,
+  (pamiętać, że to musi zostać zrobione korzystając z odpowiedniego środowiska
+  Pythona, które nie jest domyślnym uzywanym przez *reticulate*!) co stało się
+  możliwe, od kiedy Bartek opublikowała `pvreg` jako pakiet Pythona.
+- Doprowadzić do poprawnego działania część kodu będącą portem `pvreg` do R
+  (w tej chwili ta część pakietu jest wyłączona z użytku).
+
+# EWDbk 0.1.99 (10.12.2022)
+
+- Dopracowanie całego procesu w toku obliczania wskaźników dla lat 2020-2022
+  oraz 2023.
+- Pakiet cierpi jeszcze na dramatyczny deficyt dokumentacji.
+
+# EWDbk 0.1 (14.12.2022)
+
+- Pierwsza wersja pakietu.
