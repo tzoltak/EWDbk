@@ -16,9 +16,9 @@ okresl_grupe = function(dane, rokWy, katalogSurowe, typSzkoly = NULL,
               length(rokWe) == 1,
               !is.null(typSzkoly),
               length(typSzkoly) == 1, typSzkoly %in% c("LO", "T"))
-    czyRocznikWydl = (rokWy - rokWe) > case_when(typSzkoly == "LO" && rokWe < 2019 ~ 3,
+    czyRocznikWydl = (rokWy - rokWe) > case_when(typSzkoly == "LO" && rokWy < 2023 ~ 3,
                                                  typSzkoly == "LO" ~ 4,
-                                                 typSzkoly == "T" && rokWe < 2019 ~ 4,
+                                                 typSzkoly == "T" && rokWy < 2024 ~ 4,
                                                  typSzkoly == "T" ~ 5)
 
     mKontekstowe = paste0(sub("/$", "", katalogSurowe),
@@ -26,7 +26,9 @@ okresl_grupe = function(dane, rokWy, katalogSurowe, typSzkoly = NULL,
     if (!file.exists(mKontekstowe)) {
       stop("W podanej lokalizacji ('", katalogSurowe, "' nie można znaleźć pliku 'matura-kontekstowe.RData'.")
     }
-    if (rokWe < 2019 || (rokWe == 2019 && typSzkoly == "T")) {
+    if (rokWe < 2019 ||
+        (rokWe == 2019 && rokWy == 2023 && typSzkoly == "T") ||
+        (rokWe == 2019 && rokWy == 2022 && typSzkoly == "LO")) {
       gKontekstowe = paste0(sub("/$", "", katalogSurowe),
                             "/egzamin gimnazjalny-kontekstowe.RData")
       if (!file.exists(gKontekstowe)) {
@@ -46,7 +48,9 @@ okresl_grupe = function(dane, rokWy, katalogSurowe, typSzkoly = NULL,
     }
     obiekty = try(load(gKontekstowe))
     if (!("gKontekstowe" %in% obiekty) &&
-        (rokWe < 2019 || (rokWe == 2019 && typSzkoly == "T"))) {
+        (rokWe < 2019 ||
+         (rokWe == 2019 && rokWy == 2023 && typSzkoly == "T") ||
+         (rokWe == 2019 && rokWy == 2022 && typSzkoly == "LO"))) {
       stop("Nie udało się poprawnie wczytać pliku 'egzamin gimnazjalny-kontekstowe.RData', lub nie zawiera on obiektu 'gKontekstowe'.")
     } else if (!("gKontekstowe" %in% obiekty)) {
       stop("Nie udało się poprawnie wczytać pliku 'egzamin ósmoklasisty-kontekstowe.RData', lub nie zawiera on obiektu 'gKontekstowe'.")

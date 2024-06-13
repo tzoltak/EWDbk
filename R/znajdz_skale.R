@@ -28,6 +28,9 @@ znajdz_skale = function(skale, doPrezentacji = NA, skalowanie = -1L, src = NULL)
   }
   skale %>%
     summarise(max_skalowanie = max(.data$skalowanie),
+              max_skalowanie_bez_pvreg =
+                suppressWarnings(
+                  max(.data$skalowanie[!grepl(";pvreg;", .data$opis_skalowania)])),
               skalowanie = ifelse(nrSkalowania %in% .data$skalowanie,
                                   nrSkalowania, NA_integer_),
               .groups = "drop") %>%

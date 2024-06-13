@@ -51,7 +51,8 @@ oblicz_ewd_bk = function(rokEWD,
                        .data$czesc_egzaminu_we %in% c("b", "c", "f", "g", "i", "m") ~ "m",
                        .data$czesc_egzaminu_we %in% c("ja") ~ "ja"),
            skalowanie = ifelse(nrSkalowania == -1L,
-                               .data$max_skalowanie, .data$skalowanie)) %>%
+                               .data$max_skalowanie_bez_pvreg,
+                               .data$skalowanie)) %>%
     arrange(.data$opis_skali)
   message("Skale pasujące do podanych argumentem `skaleMatura`:")
   skaleMatura %>%
@@ -64,13 +65,15 @@ oblicz_ewd_bk = function(rokEWD,
     mutate(typ_szkoly = sub("^.*;(g[hm]|e8j[ap]|e8m)(LO|T);.*$", "\\2", .data$opis_skali)) %>%
     group_by(.data$id_skali, .data$opis_skali, .data$rodzaj_skali,
              .data$skala_do_prezentacji, .data$rodzaj_egzaminu,
-             .data$typ_szkoly, .data$max_skalowanie, .data$skalowanie) %>%
+             .data$typ_szkoly, .data$max_skalowanie,
+             .data$max_skalowanie_bez_pvreg, .data$skalowanie) %>%
     summarise(lata = list(sort(.data$rok, decreasing = TRUE)),
               .groups = "drop") %>%
     mutate(czesc_egzaminu_we =
              sub("^ewd;[ge8]+([hm]|ja|jp)(LO|T);.*$", "\\1", .data$opis_skali),
            skalowanie = ifelse(rep(nrSkalowania == -1L, n()),
-                               .data$max_skalowanie, .data$skalowanie)) %>%
+                               .data$max_skalowanie_bez_pvreg,
+                               .data$skalowanie)) %>%
     ungroup() %>%
     arrange(.data$opis_skali)
   message("Skale pasujące do podanych argumentem `skaleWe`:")

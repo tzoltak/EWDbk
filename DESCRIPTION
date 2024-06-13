@@ -1,7 +1,7 @@
 Encoding: UTF-8
 Package: EWDbk
 Title: Educational Value-Added indicators for Polish secondary schools
-Version: 0.1.99
+Version: 0.1.999
 Authors@R: c(
   person("Tomasz", "Żółtak", email = "tomek@zozlak.org", role = c("aut", "cre")))
 Description: Functions enabling calculation of the Polish Educational
