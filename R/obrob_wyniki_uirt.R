@@ -1,3 +1,14 @@
+#' @title Skalowanie wynikow egzaminow w Stacie przy pomocy pakietu uirt
+#' @description
+#' Przetwarza wyniki skalowania z formy zapisanej ze Staty do kompatybilnej
+#' ze strukturami danych, w jakich są one zapisywane w bazie danych.
+#' @param parametry ramka danych z wyestymowanymi parametrami modelu
+#' (wczytanymi wprost z pliku CSV zapisanego przez Statę)
+#' @inheritParams skaluj_uirt
+#' @return lista z wynikami skalowania zawierająca następujące elementy:
+#' *grupy* (ramka danych), *parametry* (ramka danych), *kowariancje*
+#' (ramka danych)
+#' @seealso [skaluj_uirt()]
 #' @importFrom dplyr %>% .data count filter left_join mutate select
 #' @importFrom tidyr pivot_longer pivot_wider
 obrob_wyniki_uirt = function(parametry, dane) {

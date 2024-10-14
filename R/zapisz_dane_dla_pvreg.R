@@ -1,3 +1,11 @@
+#' @title Obliczanie latentnych wskaznikow EWD
+#' @description
+#' Zapisuje pliki z danymi konieczne do obliczenia wskaźników EWD przez pakiet
+#' *pvreg* Pythona.
+#' @inheritParams estymuj_pvreg
+#' @return ciąg znaków z nazwą pliku sterującego (w formacie JSON) z parametrami
+#' wywołania *pvreg*
+#' @seealso [przygotuj_zbior_z_parametrami_dla_pvreg()], [estymuj_pvreg()]
 #' @importFrom utils write.csv
 #' @importFrom dplyr %>% .data count matches mutate n_distinct select
 zapisz_dane_dla_pvreg = function(dane, parametry, nazwa, nPV = 3L,
@@ -95,6 +103,15 @@ zapisz_dane_dla_pvreg = function(dane, parametry, nazwa, nPV = 3L,
 
   return(paste0("ewd_", nazwa, "_pvreg_config.json"))
 }
+#' @title Obliczanie latentnych wskaznikow EWD
+#' @param parametry ramka danych z parametrami modelu skalowania danego egzaminu
+#' @param kowariancje ramka danych z kowariancjami parametrów modelu skalowania
+#' danego egzaminu
+#' @param grupy ramka danych z rozkładem liczebności grup w danych (i numerami
+#' grup)
+#' @return ramka danych o wartościami parametrów modelu skalowania
+#' i ich kowariancji, w strukturze odpowiadającej tej oczekiwanej przez *pvreg*
+#' @seealso [zapisz_dane_dla_pvreg()]
 #' @importFrom dplyr %>% .data arrange bind_rows case_when desc left_join mutate select
 #' @importFrom tidyr pivot_wider
 przygotuj_zbior_z_parametrami_dla_pvreg = function(parametry, kowariancje, grupy) {

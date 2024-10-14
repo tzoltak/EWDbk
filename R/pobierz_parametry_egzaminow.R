@@ -1,3 +1,18 @@
+#' @title Przygotowywanie danych do obliczenia wskaznikow EWD
+#' @description
+#' Dla podanych skal pobiera z bazy zestawienie wartości parametrów modeli
+#' skalowania i ich kowariancji.
+#' @param skale ramka danych o jednym wierszu zawierająca kolumny
+#' *id_skali_matura*, *skalowanie_matura*, *id_skali_we*, *skalowanie_we*
+#' (pojedynczy wiersz połączonych ze sobą i przekształconych wywołań
+#' [znajdz_skale()] dla skal matury i skal egzaminu na wejściu)
+#' @inheritParams oblicz_ewd_bk
+#' @return lista ramek danych z elementami: *parametryMatura*,
+#' *kowariancjeMatura*, *tematyLaureatowMatura*, *parametryWejscie*,
+#' *kowariancjeWejscie*, *tematyLaureatowWejscie*
+#' @seealso [ZPD::pobierz_parametry()],
+#' [ZPD::pobierz_skalowania_elementy_kowariancje()],
+#' [wybierz_tematy_dla_laureatow()] [oblicz_ewd_bk()]
 #' @importFrom dplyr %>% .data collect filter
 pobierz_parametry_egzaminow = function(skale, src) {
   stopifnot(is.data.frame(skale), nrow(skale) == 1,

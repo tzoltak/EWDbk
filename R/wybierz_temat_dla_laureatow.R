@@ -1,12 +1,30 @@
+#' @title Przygotowywanie danych do obliczenia wskaznikow EWD
+#' @description
+#' Określa, którym ze zmiennych opisujących wybór tematów rozprawki należy
+#' ustawić wartość 1 dla laureatów w poszczególnych częściach egzaminu (tak aby
+#' skutkowało to maksymalizacją oszacowań umiejętności laureatów).
+#' @param parametry ramka danych z wartościami parametrów modelu, zwrócona przez
+#' [ZPD::pobierz_parametry()]
+#' @details
+#' Funkcja robi najlepsze, co może, mając dostęp tylko do parametrów modelu.
+#' Zwraca ramkę danych o 0 wierszach, jeśli w parametrach nie widzi żadnych
+#' tematów, ale może też zwrócić pusty ciąg znaków w kolumnie `temat`, jeśli
+#' w ramach danej części egzaminu należy wybrać "temat odniesienia" (a więc ten,
+#' który "nie ma swojej zmiennej") lub temat, którego "zmienna selekcyjna"
+#' została usunięta z modelu skalowania.
+#' @return ramka danych z przypisaniem nazwy zmiennej opisującej temat
+#' rozprawki, której wartość należy laureatom ustawić na 1, do części egzaminów
+#' (p. sekcja *details* w celu zapoznania się ze sposobem obsługi szczególnych
+#' przypadków)
+#' @seealso [pobierz_parametry_egzaminow()],
+#' [przygotuj_mapowanie_kryteriow_na_czesci_egzaminu()]
 #' @importFrom dplyr %>% .data arrange desc filter group_by mutate select slice ungroup
 #' @importFrom tidyr pivot_wider
-# Funkcja robi najlepsze, co może, mając dostęp tylko do parametrów modelu.
-# Zwraca ramkę danych o 0 wierszach, jeśli w parametrach nie widzi żadnych
-# tematów, ale może też zwrócić pusty ciąg znaków w kolumnie `temat`, jeśli
-# w ramach danej części egzaminu należy wybrać "temat odniesienia" (a więc ten,
-# który "nie ma swojej zmiennej") lub temat, którego "zmienna selekcyjna"
-# została usunięta z modelu skalowania.
 wybierz_tematy_dla_laureatow = function(parametry) {
+  stopifnot(is.data.frame(parametry),
+            "parametr_uwagi" %in% names(parametry),
+            "parametr" %in% names(parametry),
+            "wartosc" %in% names(parametry))
   parametry = parametry %>%
     filter(grepl("^t[[:digit:]]+_", .data$parametr_uwagi)) %>%
     select(zmienna_temat = "parametr_uwagi", "parametr", "wartosc")

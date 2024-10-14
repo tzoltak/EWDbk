@@ -1,4 +1,4 @@
-# EWDskale
+# EWDbk
 
 Pakiet zawiera funkcje automatyzujące proces tworzenia i edycji skal, opisujących sposób łączenia i ew. przetwarzania kryteriów oceny przed przystąpieniem do skalowania. 
 
@@ -30,7 +30,7 @@ R CMD INSTALL EWDskale
 
 Aby zainstalować pakiet Pythona *pvreg*:
 
-- zainstaluj Pythona 3.10.10, wykonaj aktualizację PIPa, zainstluj pakiet pozwalający tworzyć środowiska wirtualne Pythona, a następnie utwórz środowisko, w którym będzie działał pvreg (nie gryząc się wersjami swoich zależności z niczym innym):
+- zainstaluj Pythona 3.10.10, wykonaj aktualizację PIPa, zainstaluj pakiet pozwalający tworzyć środowiska wirtualne Pythona, a następnie utwórz środowisko, w którym będzie działał pvreg (nie gryząc się wersjami swoich zależności z niczym innym):
 
 ```
 py -m pip install --upgrade pip

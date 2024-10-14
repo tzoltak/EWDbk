@@ -1,7 +1,44 @@
+#' @title Przetwarzanie i zapis wynikow obliczania latentnych wskaznikow EWD
+#' @description
+#' Przetwarza zwrócone przez *pvreg* oszacowania PV i parametrów modelu
+#' skalowania danego egzaminu do formy odpowiadającej strukturom, w jakich
+#' dane o wynikach skalowania zapisywane są w bazie danych.
+#' @param pv ramka danych z wartościami PV wyestymowanymi przez *pvreg*
+#' (element *PV* listy zwróconej przez [estymuj_pvreg()], z wybranymi tylko
+#' wierszami odnoszącymi się do danego egzaminu)
+#' @param skale ramka danych o jednym wierszu zawierająca informacje o skali
+#' i numerze skalowania, który powinien zostać przypisany wynikom estymacji
+#' z wykorzystaniem *pvreg*
+#' @param parametry lista ramek danych z elementami *parametry* i *kowariancje*
+#' z wartościami parametrów modelu skalowania danego egzaminu i ich kowariancji,
+#' jakie zostały użyte w estymacji z wykorzystaniem *pvreg* - co do zasady
+#' wzięte z wyniku działania [pobierz_parametry_egzaminow()], przekształconego
+#' następnie przy pomocy [unormuj_parametry_egzaminow()]
+#' @param czesciEgzaminu ramka danych - atrybut *czesciEgzaminu* ramki danych
+#' zawierającej wyniki danego egzaminu, będącej jednym z elementów listy
+#' zwróconej przez wywołanie [przygotuj_dane_do_ewd_bk()]
+#' @param grupy wektor ciągów znaków -  nazwy grup w modelu skalowania danego
+#' egzaminu, które zostały objęte obliczaniem wskaźników EWD
+#' @param nazwaWskaznika ciąg znaków - nazwa obliczonego wskaźnika EWD
+#' @inheritParams oblicz_ewd_bk
+#' @return lista klasy *wynikiSkalowania*
+#' @seealso [oblicz_ewd_bk()], [przygotuj_ewd_do_zapisu()]
 #' @importFrom dplyr %>% .data bind_rows filter left_join mutate rename select
 przygotuj_pv_do_zapisu = function(pv, skale, parametry, czesciEgzaminu, grupy,
                                   nazwaWskaznika, rokEWD) {
-  stopifnot(is.data.frame(skale), nrow(skale) == 1)
+  stopifnot(is.data.frame(pv),
+            is.data.frame(skale), nrow(skale) == 1,
+            is.list(parametry),
+            "parametry" %in% names(parametry),
+            "kowariancje" %in% names(parametry),
+            is.data.frame(czesciEgzaminu),
+            is.character(grupy), length(grupy) > 0, !anyNA(grupy),
+            is.character(nazwaWskaznika), length(nazwaWskaznika) == 1,
+            !anyNA(nazwaWskaznika), nazwaWskaznika != "",
+            is.numeric(rokEWD), length(rokEWD) == 1, !anyNA(rokEWD))
+  stopifnot(is.data.frame(parametry$parametry),
+            is.data.frame(parametry$kowariancje),
+            as.integer(rokEWD) == rokEWD)
 
   wyniki = list(skalowania = data.frame(id_skali = skale$id_skali,
                                         skalowanie = skale$skalowanie_zapisz,

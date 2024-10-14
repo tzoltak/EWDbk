@@ -1,6 +1,39 @@
+#' @title Przetwarzanie i zapis wynikow obliczania latentnych wskaznikow EWD
+#' @description
+#' Przetwarza zwrócone przez *pvreg* oszacowania wskaźników EWD do struktur
+#' danych umożliwiających zapisanie ich do bazy danych.
+#' @inheritParams oblicz_ewd_bk
+#' @param ewd ramka danych z oszacowaniami EWD wyestymowanymi przez *pvreg*
+#' (element *EWD* listy zwróconej przez [estymuj_pvreg()])
+#' @param nazwaWskaznika ciąg znaków - nazwa obliczonego wskaźnika EWD
+#' @param dane lista ramek danych zwrócona przez [przygotuj_dane_do_ewd_bk()]
+#' @param skalowania ramka danych o dwóch wierszach zawierająca informacje
+#' o skalach i numerach skalowań, który powinny zostać przypisane wynikom
+#' estymacji z wykorzystaniem *pvreg* (w bazie danych zapisywane jest również
+#' powiązanie między wskaźnikami EWD a skalowaniami)
+#' @inheritParams okresl_liczbe_zdajacych
+#' @return lista ramek danych z elementami *ewd*, *wskazniki*,
+#' *wskazniki_skalowania* i *liczba_zdajacych*
+#' @seealso [oblicz_empiryczne_warstwice()], [okresl_liczbe_zdajacych()],
+#' [oblicz_ewd_bk()], [przygotuj_pv_do_zapisu()]
 #' @importFrom dplyr %>% .data across case_when left_join mutate rename_with select
 przygotuj_ewd_do_zapisu = function(ewd, nazwaWskaznika, rokEWD, dane,
                                    skalowania, luWszyscy, src) {
+  stopifnot(is.data.frame(ewd),
+            all(c("id_szkoly", "out_schl", "out_schl_se", "eva_schl",
+                  "eva_schl_se", "cor_eva_out", "mean_schl", "mean_schl_se",
+                  "lu") %in% names(ewd)),
+            is.list(dane),
+            is.character(nazwaWskaznika), length(nazwaWskaznika) == 1,
+            !anyNA(nazwaWskaznika), nazwaWskaznika != "",
+            is.numeric(rokEWD), length(rokEWD) == 1, !anyNA(rokEWD),
+            is.data.frame(skalowania),
+            all(c("id_skali", "skalowanie") %in% names(skalowania)),
+            is.data.frame(luWszyscy),
+            all(c("id_szkoly", "rok", "lu_wszyscy",
+                  "matura_miedzynarodowa") %in% names(luWszyscy)),
+            dplyr::is.src(src) | is.null(src))
+  stopifnot(all(sapply(dane, is.data.frame)))
   gamma = oblicz_empiryczne_warstwice(wyniki = ewd$out_schl, ewd = ewd$eva_schl,
                                       liczbaUczniow = ewd$lu, pr = c(0.5, 0.9))
   ewd = ewd %>%
@@ -31,9 +64,13 @@ przygotuj_ewd_do_zapisu = function(ewd, nazwaWskaznika, rokEWD, dane,
     # przypisywanie kategorii
     mutate(kategoria =
              case_when(.data$lu_ewd < 30 & .data$matura_miedzynarodowa ~ 205,
-                       .data$matura_miedzynarodowa ~ 203,
                        .data$lu_ewd < 30 ~ 204,
-                       .default = 0))
+                       .data$matura_miedzynarodowa ~ 203,
+                       .default = 0)) %>%
+    mutate(kategoria = .data$kategoria +
+             ifelse(rokEWD >= (2023 + (substr(nazwaWskaznika, 2, 2) == "t")) &
+                      .data$kategoria != 0,
+                    100, 0))
   wskazniki = data.frame(rodzaj_wsk = "ewd",
                          wskaznik = nazwaWskaznika,
                          rok_do = rokEWD,

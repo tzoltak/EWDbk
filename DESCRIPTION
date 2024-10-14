@@ -1,7 +1,7 @@
 Encoding: UTF-8
 Package: EWDbk
 Title: Educational Value-Added indicators for Polish secondary schools
-Version: 0.1.999
+Version: 0.2
 Authors@R: c(
   person("Tomasz", "Żółtak", email = "tomek@zozlak.org", role = c("aut", "cre")))
 Description: Functions enabling calculation of the Polish Educational
@@ -9,7 +9,7 @@ Description: Functions enabling calculation of the Polish Educational
 Depends:
     R (>= 3.3.0)
 Imports:
-    ZPD (>= 1.8.0),
+    ZPD (>= 1.10.0),
     dplyr (>= 1.1.1),
     tidyr (>= 1.3.0),
     haven (>= 2.5.0),
@@ -19,7 +19,7 @@ Suggests:
     testthat,
     knitr
 License: MIT + file LICENSE
-Language: pl
-VignetteBuilder: knitr
+Language: pl_PL
+Roxygen: list(markdown = TRUE)
 NeedsCompilation: no
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.2

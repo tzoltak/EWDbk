@@ -1,4 +1,62 @@
 #' @title Obliczanie latentnych wskaznikow EWD szkol maturalnych
+#' @description
+#' Funkcja oblicza jednoroczne wskaźniki EWD LO i techników zgodnie z metodą
+#' opracowaną przez Bartka Kondratka.
+#' @param rokEWD rok egzaminu maturalnego (identyfikujący rocznik absolwentów)
+#' @param skaleMatura wektor ciągów znaków z wyrażeniami regularnymi
+#' identyfikującymi skale (po kolumnie `opis` w bazie danych) lub wektor
+#' liczbowy z `id_skali` - wskazuje skale, które mają zostać wykorzystane do
+#' skalowania wyników matury
+#' @param skaleWe wektor ciągów znaków z wyrażeniami regularnymi
+#' identyfikującymi skale (po kolumnie `opis` w bazie danych) lub wektor
+#' liczbowy z `id_skali` - wskazuje skale, które mają zostać wykorzystane do
+#' skalowania wyników egzaminu *na wejściu*
+#' @param skalowanieMatura numer skalowania (w ramach każdej ze skal
+#' zidentyfikowanych na podstawie argumentu `skaleMatura`), parametry z którego
+#' mają zostać wykorzystane do skalowania wyników matury; domyślna wartość -1
+#' oznacza wybór (oddzielnie w ramach każdej skali) największego numeru
+#' skalowania spośród tych, które nie opisują wyników działania *pvreg*
+#' (tzn. pochodzą ze skalowania wyników egzaminu *uirt*-em, a nie powstały
+#' w wyniku obliczania latentnych wskaźników EWD)
+#' @param skalowanieWe numer skalowania (w ramach każdej ze skal
+#' zidentyfikowanych na podstawie argumentu `skaleMatura`), parametry z którego
+#' mają zostać wykorzystane do skalowania wyników egzaminu *na wejściu*;
+#' domyślna wartość -1 oznacza wybór (oddzielnie w ramach każdej skali)
+#' największego numeru skalowania spośród tych, które nie opisują wyników
+#' działania *pvreg* (tzn. pochodzą ze skalowania wyników egzaminu *uirt*-em,
+#' a nie powstały w wyniku obliczania latentnych wskaźników EWD)
+#' @param katalogSurowe ciąg znaków - ścieżka do katalogu, w którym znajdują
+#' się dane z wynikami surowymi egzaminów, pobranymi przy pomocy funkcji
+#' [EWDdane::pobierz_wyniki_surowe]
+#' @param zapisz wartość logiczna - czy zapisać obliczone wartości wskaźników
+#' EWD i PV indywidualnych oszacowań umiejętności na dysku w formie plików
+#' .RData?
+#' @inheritParams przygotuj_dane_do_ewd_bk
+#' @param czyEgzaminOsmoklasisty wartość logiczna - musi być podana tylko jeśli
+#' `rokEWD=2023` (w każdym innym przypadku jest ignorowana), aby móc określić
+#' mapowanie części egzaminu (skal) egzaminu *na wyjściu* na części egzaminu
+#' (skale) egzaminu *na wejściu*
+#' @param src połączenie z bazą danych IBE zwracane przez funkcję [ZPD::polacz()];
+#' jeśli nie podane, podjęta zostanie próba automatycznego nawiązania połączenia
+#' (poprzez wywoływanie funkcji [ZPD::polacz()] z domyślnymi argumentami)
+#' @inheritParams estymuj_pvreg
+#' @details
+#' Preferowany sposób użycia funkcji to:
+#' 1. Wywołanie jej z argumentem `metoda="tylko pliki"`,
+#' 2. Ręczne uruchamiania *pvreg* z konsoli systemowej - pozwala łatwo
+#'    (*ręcznie*) zrównoleglać (i *balansować* obciążenia) obliczanie wskaźników
+#'    i diagnozować ew. problemy, które by przy tym wynikły,
+#' 3. Wywołanie funkcji jeszcze raz z argumentem `metoda="Python"`
+#'    (i `nadpisz=FALSE`, co jest jednak wartością domyślną) aby wczytać
+#'    obliczone wartości wskaźników i przetworzyć je do formy, w której będą
+#'    mogły zostać łatwo wczytane do bazy z wykorzystaniem funkcji z pakietu
+#'    *ZPDzapis*.
+#' @return lista dwóch ramek danych zawierających obliczone wartości PV
+#' indywidualnych oszacowań umiejętności (*PV*) i wskaźników EWD (*EWD*)
+#' @seealso [znajdz_skale()], [okresl_liczbe_uczniow_w_szkolach()],
+#' [pobierz_parametry_egzaminow()], [przygotuj_dane_do_ewd_bk()],
+#' [unormuj_parametry_egzaminow()], [estymuj_pvreg()],
+#' [przygotuj_pv_do_zapisu()], [przygotuj_ewd_do_zapisu()]
 #' @importFrom dplyr %>% .data arrange bind_rows case_when distinct ends_with filter group_by inner_join mutate rename_with select summarise
 #' @importFrom tidyr expand_grid
 #' @export
@@ -8,38 +66,48 @@ oblicz_ewd_bk = function(rokEWD,
                                            rokEWD - 3L, rokEWD - 4L,
                                            "|T;", rokEWD - 4L, rokEWD - 5L,
                                            ")"),
-                         zapisz = metoda != "tylko pliki",
+                         skalowanieMatura = -1L, skalowanieWe = -1L,
                          katalogSurowe = "../../skalowanie/dane surowe",
-                         skalowanie = -1L, nadpisz = FALSE,
                          metoda = c("tylko pliki", "Python", "R"),
+                         nadpisz = FALSE, zapisz = metoda != "tylko pliki",
                          minLUcznSzk= 1L, nPV = 5L, nWatkow = 5L,
-                         czyEgzaminOsmoklasisty = NA,
+                         czyEgzaminOsmoklasisty = ifelse(rokEWD > 2023,
+                                                         TRUE, NA),
                          src = NULL) {
   metoda = match.arg(metoda)
-  stopifnot(is.numeric(rokEWD), length(rokEWD) == 1,
-            is.numeric(skaleMatura) | is.character(skaleMatura), length(skaleMatura) > 0,
-            is.numeric(skaleWe) | is.character(skaleWe), length(skaleWe) > 0,
+  stopifnot(is.numeric(rokEWD), length(rokEWD) == 1, !anyNA(rokEWD),
+            is.numeric(skaleMatura) || is.character(skaleMatura), length(skaleMatura) > 0,
+            is.numeric(skaleWe) || is.character(skaleWe), length(skaleWe) > 0,
+            is.numeric(skalowanieMatura), length(skalowanieMatura) == 1,
+            skalowanieMatura > 0 || skalowanieMatura == -1L,
+            is.numeric(skalowanieWe), length(skalowanieWe) == 1,
+            skalowanieWe > 0 || skalowanieWe == -1,
+            is.logical(zapisz), length(zapisz) == 1, zapisz %in% c(TRUE, FALSE),
             is.character(katalogSurowe), length(katalogSurowe) == 1,
-            is.numeric(skalowanie), length(skalowanie) == 1, skalowanie > 0 || skalowanie == -1L,
             is.logical(nadpisz), length(nadpisz) == 1, nadpisz %in% c(TRUE, FALSE),
-            is.numeric(minLUcznSzk), length(minLUcznSzk) == 1, nPV > 0,
+            is.numeric(minLUcznSzk), length(minLUcznSzk) == 1, minLUcznSzk > 0,
             is.numeric(nPV), length(nPV) == 1, nPV > 0,
             is.numeric(nWatkow), length(nWatkow) == 1, nWatkow > 0,
             is.logical(czyEgzaminOsmoklasisty), length(czyEgzaminOsmoklasisty) == 1,
-            dplyr::is.src(src) | is.null(src))
+            dplyr::is.src(src) || is.null(src))
   stopifnot(as.integer(rokEWD) == rokEWD,
-            as.integer(skalowanie) == skalowanie,
+            as.integer(skalowanieMatura) == skalowanieMatura,
+            as.integer(skalowanieWe) == skalowanieWe,
+            as.integer(minLUcznSzk) == minLUcznSzk,
+            as.integer(nPV) == nPV,
             as.integer(nWatkow) == nWatkow,
             dir.exists(katalogSurowe))
   if (rokEWD == 2023) {
-    stopifnot("Dla 2023 r. trzeba podać argument `czyEgzaminOsmoklasisty`." = !is.na(czyEgzaminOsmoklasisty))
+    stopifnot("Dla 2023 r. trzeba podać argument `czyEgzaminOsmoklasisty`." =
+                !is.na(czyEgzaminOsmoklasisty))
   } else {
     czyEgzaminOsmoklasisty = rokEWD > 2023
   }
-  nrSkalowania = skalowanie
+  nrSkalowaniaMatura = skalowanieMatura
+  nrSkalowaniaWe = skalowanieWe
 
   # zbieranie informacji o skalach i skalowaniach
-  skaleMatura = znajdz_skale(skaleMatura, skalowanie = skalowanie, src = src) %>%
+  skaleMatura = znajdz_skale(skaleMatura, skalowanie = skalowanieMatura, src = src) %>%
     mutate(czesc_egzaminu_we =
              sub("^ewd;m_([^;]+);.*$", "\\1", .data$opis_skali)) %>%
     mutate(czesc_egzaminu_we =
@@ -50,7 +118,7 @@ oblicz_ewd_bk = function(rokEWD,
                        .data$czesc_egzaminu_we %in% c("h", "jp", "w") ~ "h",
                        .data$czesc_egzaminu_we %in% c("b", "c", "f", "g", "i", "m") ~ "m",
                        .data$czesc_egzaminu_we %in% c("ja") ~ "ja"),
-           skalowanie = ifelse(nrSkalowania == -1L,
+           skalowanie = ifelse(nrSkalowaniaMatura == -1L,
                                .data$max_skalowanie_bez_pvreg,
                                .data$skalowanie)) %>%
     arrange(.data$opis_skali)
@@ -61,7 +129,7 @@ oblicz_ewd_bk = function(rokEWD,
     rename_with(~gsub("_", " ", .)) %>%
     as.data.frame(check.names = FALSE) %>%
     print()
-  skaleWe = znajdz_skale(skaleWe, skalowanie = skalowanie, src = src) %>%
+  skaleWe = znajdz_skale(skaleWe, skalowanie = skalowanieWe, src = src) %>%
     mutate(typ_szkoly = sub("^.*;(g[hm]|e8j[ap]|e8m)(LO|T);.*$", "\\2", .data$opis_skali)) %>%
     group_by(.data$id_skali, .data$opis_skali, .data$rodzaj_skali,
              .data$skala_do_prezentacji, .data$rodzaj_egzaminu,
@@ -71,7 +139,7 @@ oblicz_ewd_bk = function(rokEWD,
               .groups = "drop") %>%
     mutate(czesc_egzaminu_we =
              sub("^ewd;[ge8]+([hm]|ja|jp)(LO|T);.*$", "\\1", .data$opis_skali),
-           skalowanie = ifelse(rep(nrSkalowania == -1L, n()),
+           skalowanie = ifelse(rep(nrSkalowaniaWe == -1L, n()),
                                .data$max_skalowanie_bez_pvreg,
                                .data$skalowanie)) %>%
     ungroup() %>%
@@ -117,7 +185,7 @@ oblicz_ewd_bk = function(rokEWD,
   }
 
   luWszyscy = okresl_liczbe_uczniow_w_szkolach(rokEWD = rokEWD,
-                                               katalogDane = katalogSurowe,
+                                               katalogSurowe = katalogSurowe,
                                                src = src)
 
   # samo obliczanie EWD
@@ -173,7 +241,7 @@ oblicz_ewd_bk = function(rokEWD,
                                       kowariancje = parametry$kowariancjeWejscie),
                                czesciEgzaminu =
                                  attributes(dane$wejscie)$czesciEgzaminu,
-                               grupy = unique(dane$wejscie$grupa),
+                               grupy = levels(dane$wejscie$grupa),
                                nazwaWskaznika = names(ewd)[i],
                                rokEWD = rokEWD)
       pv[[indeksMatura]] =
@@ -185,7 +253,7 @@ oblicz_ewd_bk = function(rokEWD,
                                       kowariancje = parametry$kowariancjeMatura),
                                czesciEgzaminu =
                                  attributes(dane$matura)$czesciEgzaminu,
-                               grupy = unique(dane$matura$grupa),
+                               grupy = levels(dane$matura$grupa),
                                nazwaWskaznika = names(ewd)[i],
                                rokEWD = rokEWD)
       ewd[[i]] =
@@ -218,20 +286,20 @@ oblicz_ewd_bk = function(rokEWD,
   class(ewd) = c("listaWskaznikowEWD", class(ewd))
   if (zapisz) {
     nazwyObiektow = paste0("ewd", rokEWD, c("PV", ""))
-    nazwyPlikow = paste0(nazwyObiektow, ".RDS")
+    nazwyPlikow = paste0(nazwyObiektow, ".RData")
     i = 0
     while (any(file.exists(nazwyPlikow))) {
       i = i + 1
-      nazwyPlikow = paste0(nazwyObiektow,"-", i, ".RDS")
+      nazwyPlikow = paste0(nazwyObiektow,"-", i, ".RData")
     }
     if (i > 0) {
       message("Co najmniej jeden z plików '",
-              paste(paste0(nazwyObiektow, ".RDS"), collapse = "', '"),
+              paste(paste0(nazwyObiektow, ".RData"), collapse = "', '"),
               "' już istnieje. Wyniki zostały zapisane do plików '",
               paste(nazwyPlikow, collapse = "', '"), "'.")
     }
-    save(pv, file = paste0(nazwyObiektow[1], ".RData"))
-    save(ewd, file = paste0(nazwyObiektow[2], ".RData"))
+    save(pv, file = nazwyPlikow[1])
+    save(ewd, file = nazwyPlikow[2])
   }
   return(list(pv = pv,
               ewd = ewd))

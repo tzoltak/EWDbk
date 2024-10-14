@@ -1,10 +1,10 @@
 #' @title Wczytywanie wynikow egzaminow zapisanych na dysku
 #' @description
 #' Funkcja wczytuje wyniki surowe egzaminu, zapisane wcześniej na dysku
-#' funkcją \code{\link[EWDdane]{pobierz_wyniki_surowe}} z pakietu EWDdane.
+#' funkcją [EWDdane::pobierz_wyniki_surowe()] z pakietu *EWDdane*.
 #' @param katalogDane ciąg znaków - ścieżka do katalogu, w którym znajdują
 #' się dane z wynikami surowymi egzaminów, pobranymi przy pomocy funkcji
-#' \code{\link[EWDdane]{pobierz_wyniki_surowe}}
+#' [EWDdane::pobierz_wyniki_surowe()]
 #' @param rodzajEgzaminu ciąg znaków
 #' @param rok liczba naturalna
 #' @param idSkali liczba naturalna - id_skali w bazie dla skali, która ma zostać
@@ -17,9 +17,9 @@
 #' danej skali (i ew. zawężonych do podanych argumentem `kryteria`) - domyślnie
 #' prawda (w praktyce ma zastosowanie w 2023 r. w związku z przeprowadzeniem
 #' w jednym roku matur w starszej i nowszej formule)
-#' @param src NULL połączenie z bazą danych IBE zwracane przez funkcję
-#' \code{\link[ZPD]{polacz}}. Jeśli nie podane, podjęta zostanie próba
-#' automatycznego nawiązania połączenia.
+#' @param src połączenie z bazą danych IBE zwracane przez funkcję [ZPD::polacz()];
+#' jeśli nie podane, podjęta zostanie próba automatycznego nawiązania połączenia
+#' (poprzez wywoływanie funkcji [ZPD::polacz()] z domyślnymi argumentami)
 #' @details
 #' Funkcja co do zasady dołącza do wyników egzaminu dane kontekstowe, zawężając
 #' grupę zwracanych obserwacji do tych, dla których te dane istnieją. Jeśli
@@ -27,12 +27,12 @@
 #' bez dołączania do nich danych kontekstowych. Dojdzie do tego w szczególności
 #' przy wczytywaniu wyników egzaminu gimnazjalnego z lat wcześniejszych niż
 #' 2006 r., gdyż są to dane CKE i dane pobierane funkcją
-#' \code{\link[EWDdane]{pobierz_dane_kontekstowe}} ich nie obejmują.
+#' [EWDdane::pobierz_dane_kontekstowe()] ich nie obejmują.
 #' @return data frame (data table)
+#' @seealso [ZPD::pobierz_skale()], [ZPD::pobierz_testy()],
+#' [ZPD::zastosuj_skale()], [przygotuj_dane_do_skalowania()]
 #' @importFrom stats setNames
 #' @importFrom dplyr %>% .data collect distinct filter full_join inner_join matches pick pull rename select semi_join
-#' @importFrom ZPD pobierz_skale zastosuj_skale
-#' @export
 wczytaj_wyniki_surowe = function(katalogDane, rodzajEgzaminu,
                                  rok, idSkali, kryteria = NULL,
                                  usunObserwacjeBezWynikow = TRUE, src = NULL) {
@@ -73,7 +73,7 @@ wczytaj_wyniki_surowe = function(katalogDane, rodzajEgzaminu,
          "to musi być powiązana z tylko jednym takim testem w danym roku.")
   }
   for (i in obiekty) {
-    temp = suppressMessages(zastosuj_skale(get(i), src, idSkali))
+    temp = suppressMessages(ZPD::zastosuj_skale(get(i), src, idSkali))
     # Jeśli skala ma przypisanych test który nie jest częścią egzaminu, to
     # trzeba usunąć z danych "pierwotne" id_testu poszczególnych części egzaminu
     # i zastąpić je id_testu właśnie tego testu (co dzieje się kawałek dalej).

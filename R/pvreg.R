@@ -1,6 +1,29 @@
 #' @title Proba sportowania programu Bartka Kondratka pod R
+#' @description
+#' Próba (nieudana) implementacji *pvreg* w R.
+#' @param dane lista *ramek danych* z danymi
+#' @param parametry lista *ramek danych* z parametrami zadań i grup zdających
+#' @param fixedEffects wektor tekstowy z nazwami zmiennych, które mają zostać
+#' wykorzystane w modelu warunkującym umiejętności
+#' @param nPV liczba (naturalna) - liczba PV z indywidualnymi oszacowaniami
+#' umiejętności, które mają zostać wykorzystane w estymacji
+#' @param keepPV wartość logiczna - **nie zaimplementowane** - argument
+#' wyłącznie dla fasadowej zgodności z API *pvreg*
+#' @param nJobs liczba (naturalna) - liczba równoległych wątków, w których
+#' ma być prowadzona estymacja; **nie zaimplementowane** - argument wyłącznie
+#' dla fasadowej zgodności z API *pvreg*
+#' @param nItBurn0 liczba (naturalna) - liczba iteracji pierwszego etapu *burn-in*
+#' @param nItBurn1 liczba (naturalna) - liczba iteracji drugiego etapu *burn-in*
+#' @param nItFinal liczba (naturalna) - liczba iteracji ostatnie etapu
+#' estymacji
+#' @param echo liczba (naturalna) - 0 oznacza brak zwracania na konsolę
+#' informacji o procesie estymacji, większe wartości stopniowo zwiększają
+#' poziom szczegółowości informacji zwracanych na konsoli
+#' @param methodMultilevelPriors ciąg znaków
+#' @param rescalePriors wartość logiczna
+#' @return *ramka danych* zawierająca oszacowania średnich wyników szkół
+#' *na wejściu*, EWD, ich błędów standardowych i kowariancji
 #' @importFrom dplyr %>% all_of select
-#' @export
 pvreg = function(dane, parametry,
                  fixedEffects = setdiff(names(dane$warunkujace),
                                         c("id_obserwacji", "id_szkoly")),

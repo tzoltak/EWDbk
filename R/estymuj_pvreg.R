@@ -1,3 +1,42 @@
+#' @title Obliczanie latentnych wskaznikow EWD
+#' @description
+#' Przeprowadza estymację latentnych wskaźników EWD z użyciem pakietu *pvreg*
+#' Pythona. Odpowiada też za zapisanie na dysku danych dla *pvreg* i wczytanie
+#' wyników zapisanych przez *pvreg* na dysku.
+#' @param dane lista ramek danych zwrócona przez [przygotuj_dane_do_ewd_bk()]
+#' @param parametry lista ramek danych zwrócona przez
+#' [pobierz_parametry_egzaminow()], a następnie zmodyfikowana przez
+#' [unormuj_parametry_egzaminow()]
+#' @param nazwa ciąg znaków - podstawa do tworzenia nazw plików z danymi dla
+#' *pvreg* i wynikami zapisywanymi przez *pvreg*
+#' @param nPV liczba (naturalna) - liczba PV z indywidualnymi oszacowaniami
+#' umiejętności, które mają zostać wykorzystane przez *pvreg*
+#' @param nWatkow liczba (naturalna) - liczba równoległych wątków, w których
+#' *pvreg* będzie prowadził estymację (co do zasady powinna być dzielnikiem
+#' `nPV`)
+#' @param nadpisz wartość logiczna - czy jeśli na dysku znajdują się już
+#' zapisane wartości wskaźników EWD obliczone przez *pvreg*, to nadpisać je
+#' (`nadpisz=TRUE`), czy wczytać z nich wyniki bez uruchamiania *pvreg*
+#' (`nadpisz=FALSE`); wartość argumentu nie ma znaczenia, jeśli argument
+#' `metoda="tylko pliki"`
+#' @param metoda ciąg znaków (można podawać skrócony) wskazujący, w jaki sposób
+#' funkcja ma zadziałać:
+#' -  `"tylko pliki"` - funkcja przygotowuje pliki z danymi (wynikami
+#'    i parametrami) oraz pliki sterujące dla *pvreg*, ale **nie** uruchamia go
+#'    w celu obliczenia wartości wskaźników EWD; użytkownik może później
+#'    uruchomić *pvreg* samodzielnie z konsoli systemowej;
+#' -  `"Python"` - funkcja zapisze na dysku potrzebne pliki, a następnie uruchomi
+#'    *pvreg* w celu obliczenia wskaźników, wczyta zapisane przez *pvreg*
+#'    wartości wskaźników i przetworzy je do formy, w której będą mogły zostać
+#'    łatwo zapisane do bazy; **jeśli funkcja znajdzie na dysku pliki z wynikami
+#'    działania *pvreg*** i argument `nadpisz=FALSE`, to (dla danej skali) nie
+#'    będzie go uruchamiać, tylko wczyta wyniki z tych plików;
+#' -  `"R"` - podjęta została próba przepisania *pvreg* do R, która jednak
+#'    nie zakończyła się sukcesem - w związku z tym opcji tej w praktyce nie
+#'    można użyć (funkcja zakończy się błędem), ale jej istnienie przypomina
+#'    o tym wysiłku
+#' @return lista dwóch ramek danych z elementami *ewd* i *pv*
+#' @seealso [zapisz_dane_dla_pvreg()], [oblicz_ewd_bk()]
 #' @importFrom utils read.csv
 #' @importFrom dplyr %>% .data bind_rows count inner_join mutate select slice starts_with
 #' @importFrom tidyr pivot_longer

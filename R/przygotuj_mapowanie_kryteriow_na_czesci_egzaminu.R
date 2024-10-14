@@ -1,7 +1,29 @@
+#' @title Przetwarzanie danych z wynikami egzaminow
+#' @description
+#' Funkcja na podstawie informacji z bazy danych zwraca (pseudo)kryteria oceny
+#' skali o podanym id z dopisanymi informacjami o tym, z jakiej części egzaminu
+#' i z jakiego roku pochodzą, prefiks związany z tą częścią egzaminu, numer
+#' pytania, typ pytania oraz, w przypadku kryteriów oceny wypracowania, którego
+#' tematu dane kryterium dotyczy (a także zmienną rozróżniającą części egzaminu
+#' ze *starej* i *nowej* formuły matury, w sensie zmian z lat 2023/2034).
+#' @param idSkali liczba (całkowita) - id skali w bazie danych
+#' @param dodajRokDoNazwTematow wartość logiczna - czy do tworzonych
+#' nazw zmiennych opisujących wybór tematów ma zostać dopisany rok
+#' przeprowadzenia egzaminu? można podać wartość `NA`, która oznacza, że rok
+#' zostanie dodany tylko w sytuacji, gdy kryteria danej skali pochodzą
+#' z egzaminów przeprowadzonych w kilku różnych latach
+#' @inheritParams skaluj_matura_bk
+#' @seealso [ZPD::pobierz_kryteria_oceny()], [ZPD::pobierz_testy()],
+#' [przygotuj_dane_do_skalowania()], [wybierz_tematy_dla_laureatow()]
+#' @return ramka danych, w której wiersze stanowią (pseudo)kryteria oceny
 #' @importFrom dplyr %>% .data arrange collect distinct filter left_join mutate select
 przygotuj_mapowanie_kryteriow_na_czesci_egzaminu = function(idSkali,
                                                             dodajRokDoNazwTematow = FALSE,
                                                             src = NULL) {
+  stopifnot(is.numeric(idSkali), length(idSkali) == 1, !anyNA(idSkali),
+            as.integer(idSkali) == idSkali,
+            is.logical(dodajRokDoNazwTematow),
+            length(dodajRokDoNazwTematow) == 1)
   if (is.null(src)) {
     src = ZPD::polacz()
     on.exit(ZPD::rozlacz(src))
@@ -40,7 +62,11 @@ przygotuj_mapowanie_kryteriow_na_czesci_egzaminu = function(idSkali,
                                   NA_character_)) %>%
     select(-"czyTemat", -"sufiksNF") %>%
     arrange(.data$kolejnosc)
+  if (nrow(results) == 0) warning("W bazie nie ma skali o podanym id lub nie są do niej przypisane żadne (psudo)kryteria oceny.")
 
+  if (is.na(dodajRokDoNazwTematow)) {
+    dodajRokDoNazwTematow = length(unique(results$rok)) > 1
+  }
   if (dodajRokDoNazwTematow) {
     results = results %>%
       mutate(zmienna_temat = ifelse(is.na(.data$zmienna_temat),

@@ -9,18 +9,125 @@ oblicz_ewd_bk(
   skaleMatura = paste0("^ewd;m_[^;]+;", rokEWD),
   skaleWe = paste0("^ewd;g[hm](LO;", rokEWD - 3L, rokEWD - 4L, "|T;", rokEWD - 4L, rokEWD
     - 5L, ")"),
-  zapisz = metoda != "tylko pliki",
+  skalowanieMatura = -1L,
+  skalowanieWe = -1L,
   katalogSurowe = "../../skalowanie/dane surowe",
-  skalowanie = -1L,
-  nadpisz = FALSE,
   metoda = c("tylko pliki", "Python", "R"),
+  nadpisz = FALSE,
+  zapisz = metoda != "tylko pliki",
   minLUcznSzk = 1L,
   nPV = 5L,
   nWatkow = 5L,
-  czyEgzaminOsmoklasisty = NA,
+  czyEgzaminOsmoklasisty = ifelse(rokEWD > 2023, TRUE, NA),
   src = NULL
 )
 }
+\arguments{
+\item{rokEWD}{rok egzaminu maturalnego (identyfikujący rocznik absolwentów)}
+
+\item{skaleMatura}{wektor ciągów znaków z wyrażeniami regularnymi
+identyfikującymi skale (po kolumnie \code{opis} w bazie danych) lub wektor
+liczbowy z \code{id_skali} - wskazuje skale, które mają zostać wykorzystane do
+skalowania wyników matury}
+
+\item{skaleWe}{wektor ciągów znaków z wyrażeniami regularnymi
+identyfikującymi skale (po kolumnie \code{opis} w bazie danych) lub wektor
+liczbowy z \code{id_skali} - wskazuje skale, które mają zostać wykorzystane do
+skalowania wyników egzaminu \emph{na wejściu}}
+
+\item{skalowanieMatura}{numer skalowania (w ramach każdej ze skal
+zidentyfikowanych na podstawie argumentu \code{skaleMatura}), parametry z którego
+mają zostać wykorzystane do skalowania wyników matury; domyślna wartość -1
+oznacza wybór (oddzielnie w ramach każdej skali) największego numeru
+skalowania spośród tych, które nie opisują wyników działania \emph{pvreg}
+(tzn. pochodzą ze skalowania wyników egzaminu \emph{uirt}-em, a nie powstały
+w wyniku obliczania latentnych wskaźników EWD)}
+
+\item{skalowanieWe}{numer skalowania (w ramach każdej ze skal
+zidentyfikowanych na podstawie argumentu \code{skaleMatura}), parametry z którego
+mają zostać wykorzystane do skalowania wyników egzaminu \emph{na wejściu};
+domyślna wartość -1 oznacza wybór (oddzielnie w ramach każdej skali)
+największego numeru skalowania spośród tych, które nie opisują wyników
+działania \emph{pvreg} (tzn. pochodzą ze skalowania wyników egzaminu \emph{uirt}-em,
+a nie powstały w wyniku obliczania latentnych wskaźników EWD)}
+
+\item{katalogSurowe}{ciąg znaków - ścieżka do katalogu, w którym znajdują
+się dane z wynikami surowymi egzaminów, pobranymi przy pomocy funkcji
+\link[EWDdane:pobierz_wyniki_surowe]{EWDdane::pobierz_wyniki_surowe}}
+
+\item{metoda}{ciąg znaków (można podawać skrócony) wskazujący, w jaki sposób
+funkcja ma zadziałać:
+\itemize{
+\item \code{"tylko pliki"} - funkcja przygotowuje pliki z danymi (wynikami
+i parametrami) oraz pliki sterujące dla \emph{pvreg}, ale \strong{nie} uruchamia go
+w celu obliczenia wartości wskaźników EWD; użytkownik może później
+uruchomić \emph{pvreg} samodzielnie z konsoli systemowej;
+\item \code{"Python"} - funkcja zapisze na dysku potrzebne pliki, a następnie uruchomi
+\emph{pvreg} w celu obliczenia wskaźników, wczyta zapisane przez \emph{pvreg}
+wartości wskaźników i przetworzy je do formy, w której będą mogły zostać
+łatwo zapisane do bazy; \strong{jeśli funkcja znajdzie na dysku pliki z wynikami
+działania \emph{pvreg}} i argument \code{nadpisz=FALSE}, to (dla danej skali) nie
+będzie go uruchamiać, tylko wczyta wyniki z tych plików;
+\item \code{"R"} - podjęta została próba przepisania \emph{pvreg} do R, która jednak
+nie zakończyła się sukcesem - w związku z tym opcji tej w praktyce nie
+można użyć (funkcja zakończy się błędem), ale jej istnienie przypomina
+o tym wysiłku
+}}
+
+\item{nadpisz}{wartość logiczna - czy jeśli na dysku znajdują się już
+zapisane wartości wskaźników EWD obliczone przez \emph{pvreg}, to nadpisać je
+(\code{nadpisz=TRUE}), czy wczytać z nich wyniki bez uruchamiania \emph{pvreg}
+(\code{nadpisz=FALSE}); wartość argumentu nie ma znaczenia, jeśli argument
+\code{metoda="tylko pliki"}}
+
+\item{zapisz}{wartość logiczna - czy zapisać obliczone wartości wskaźników
+EWD i PV indywidualnych oszacowań umiejętności na dysku w formie plików
+.RData?}
+
+\item{minLUcznSzk}{liczba (naturalna) - szkoły z liczbą uczniów (wchodzących
+do obliczeń) poniżej zadanej liczby zostaną wykluczone z estymacji}
+
+\item{nPV}{liczba (naturalna) - liczba PV z indywidualnymi oszacowaniami
+umiejętności, które mają zostać wykorzystane przez \emph{pvreg}}
+
+\item{nWatkow}{liczba (naturalna) - liczba równoległych wątków, w których
+\emph{pvreg} będzie prowadził estymację (co do zasady powinna być dzielnikiem
+\code{nPV})}
+
+\item{czyEgzaminOsmoklasisty}{wartość logiczna - musi być podana tylko jeśli
+\code{rokEWD=2023} (w każdym innym przypadku jest ignorowana), aby móc określić
+mapowanie części egzaminu (skal) egzaminu \emph{na wyjściu} na części egzaminu
+(skale) egzaminu \emph{na wejściu}}
+
+\item{src}{połączenie z bazą danych IBE zwracane przez funkcję \code{\link[ZPD:polacz]{ZPD::polacz()}};
+jeśli nie podane, podjęta zostanie próba automatycznego nawiązania połączenia
+(poprzez wywoływanie funkcji \code{\link[ZPD:polacz]{ZPD::polacz()}} z domyślnymi argumentami)}
+}
+\value{
+lista dwóch ramek danych zawierających obliczone wartości PV
+indywidualnych oszacowań umiejętności (\emph{PV}) i wskaźników EWD (\emph{EWD})
+}
 \description{
-Obliczanie latentnych wskaznikow EWD szkol maturalnych
+Funkcja oblicza jednoroczne wskaźniki EWD LO i techników zgodnie z metodą
+opracowaną przez Bartka Kondratka.
+}
+\details{
+Preferowany sposób użycia funkcji to:
+\enumerate{
+\item Wywołanie jej z argumentem \code{metoda="tylko pliki"},
+\item Ręczne uruchamiania \emph{pvreg} z konsoli systemowej - pozwala łatwo
+(\emph{ręcznie}) zrównoleglać (i \emph{balansować} obciążenia) obliczanie wskaźników
+i diagnozować ew. problemy, które by przy tym wynikły,
+\item Wywołanie funkcji jeszcze raz z argumentem \code{metoda="Python"}
+(i \code{nadpisz=FALSE}, co jest jednak wartością domyślną) aby wczytać
+obliczone wartości wskaźników i przetworzyć je do formy, w której będą
+mogły zostać łatwo wczytane do bazy z wykorzystaniem funkcji z pakietu
+\emph{ZPDzapis}.
+}
+}
+\seealso{
+\code{\link[=znajdz_skale]{znajdz_skale()}}, \code{\link[=okresl_liczbe_uczniow_w_szkolach]{okresl_liczbe_uczniow_w_szkolach()}},
+\code{\link[=pobierz_parametry_egzaminow]{pobierz_parametry_egzaminow()}}, \code{\link[=przygotuj_dane_do_ewd_bk]{przygotuj_dane_do_ewd_bk()}},
+\code{\link[=unormuj_parametry_egzaminow]{unormuj_parametry_egzaminow()}}, \code{\link[=estymuj_pvreg]{estymuj_pvreg()}},
+\code{\link[=przygotuj_pv_do_zapisu]{przygotuj_pv_do_zapisu()}}, \code{\link[=przygotuj_ewd_do_zapisu]{przygotuj_ewd_do_zapisu()}}
 }

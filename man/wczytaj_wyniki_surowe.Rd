@@ -17,7 +17,7 @@ wczytaj_wyniki_surowe(
 \arguments{
 \item{katalogDane}{ciąg znaków - ścieżka do katalogu, w którym znajdują
 się dane z wynikami surowymi egzaminów, pobranymi przy pomocy funkcji
-\code{\link[EWDdane]{pobierz_wyniki_surowe}}}
+\code{\link[EWDdane:pobierz_wyniki_surowe]{EWDdane::pobierz_wyniki_surowe()}}}
 
 \item{rodzajEgzaminu}{ciąg znaków}
 
@@ -32,20 +32,20 @@ kryteriów oceny, jakie powinna zawierać dana część/ci egzaminu}
 \item{usunObserwacjeBezWynikow}{wartość logiczna wskazująca, czy
 z przygotowanego zbioru powinny zostać usunięte obserwacje, które nie mają
 żadnych wyników (niebędących brakami danych) kryteriów oceny przypisanej do
-danej skali (i ew. zawężonych do podanych argumentem `kryteria`) - domyślnie
+danej skali (i ew. zawężonych do podanych argumentem \code{kryteria}) - domyślnie
 prawda (w praktyce ma zastosowanie w 2023 r. w związku z przeprowadzeniem
 w jednym roku matur w starszej i nowszej formule)}
 
-\item{src}{NULL połączenie z bazą danych IBE zwracane przez funkcję
-\code{\link[ZPD]{polacz}}. Jeśli nie podane, podjęta zostanie próba
-automatycznego nawiązania połączenia.}
+\item{src}{połączenie z bazą danych IBE zwracane przez funkcję \code{\link[ZPD:polacz]{ZPD::polacz()}};
+jeśli nie podane, podjęta zostanie próba automatycznego nawiązania połączenia
+(poprzez wywoływanie funkcji \code{\link[ZPD:polacz]{ZPD::polacz()}} z domyślnymi argumentami)}
 }
 \value{
 data frame (data table)
 }
 \description{
 Funkcja wczytuje wyniki surowe egzaminu, zapisane wcześniej na dysku
-funkcją \code{\link[EWDdane]{pobierz_wyniki_surowe}} z pakietu EWDdane.
+funkcją \code{\link[EWDdane:pobierz_wyniki_surowe]{EWDdane::pobierz_wyniki_surowe()}} z pakietu \emph{EWDdane}.
 }
 \details{
 Funkcja co do zasady dołącza do wyników egzaminu dane kontekstowe, zawężając
@@ -54,5 +54,9 @@ jednak stwierdzi, że w efekcie usunięci zostaliby wszyscy, to zwróci wyniki,
 bez dołączania do nich danych kontekstowych. Dojdzie do tego w szczególności
 przy wczytywaniu wyników egzaminu gimnazjalnego z lat wcześniejszych niż
 2006 r., gdyż są to dane CKE i dane pobierane funkcją
-\code{\link[EWDdane]{pobierz_dane_kontekstowe}} ich nie obejmują.
+\code{\link[EWDdane:pobierz_dane_kontekstowe]{EWDdane::pobierz_dane_kontekstowe()}} ich nie obejmują.
+}
+\seealso{
+\code{\link[ZPD:pobierz_skale]{ZPD::pobierz_skale()}}, \code{\link[ZPD:pobierz_testy]{ZPD::pobierz_testy()}},
+\code{\link[ZPD:zastosuj_skale]{ZPD::zastosuj_skale()}}, \code{\link[=przygotuj_dane_do_skalowania]{przygotuj_dane_do_skalowania()}}
 }

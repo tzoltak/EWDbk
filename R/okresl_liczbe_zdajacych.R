@@ -1,6 +1,21 @@
+#' @title Przetwarzanie i zapis wynikow obliczania latentnych wskaznikow EWD
+#' @description
+#' Określa liczbę zdających poszczególne przedmioty na poszczególnych poziomach
+#' w danych użytych do obliczenia wskaźników EWD.
+#' @inheritParams przygotuj_ewd_do_zapisu
+#' @param luWszyscy ramka danych zwrócona przez
+#' [okresl_liczbe_uczniow_w_szkolach()]
+#' @return ramka danych
+#' @seealso [przygotuj_ewd_do_zapisu()]
 #' @importFrom dplyr %>% .data across arrange bind_rows count distinct filter group_by inner_join left_join matches mutate select summarise
 #' @importFrom tidyr pivot_longer
 okresl_liczbe_zdajacych = function(dane, rokEWD, luWszyscy, nazwaWskaznika) {
+  stopifnot(is.list(dane),
+            is.numeric(rokEWD), length(rokEWD) == 1, !anyNA(rokEWD),
+            is.data.frame(luWszyscy),
+            is.character(nazwaWskaznika), length(nazwaWskaznika) == 1,
+            !anyNA(nazwaWskaznika), nazwaWskaznika != "")
+  stopifnot(all(sapply(dane, is.data.frame)))
   liczbaZdajacych = dane$matura %>%
     select("id_obserwacji", matches("^[kp]_")) %>%
     pivot_longer(-"id_obserwacji", names_to = "kryterium", values_to = "wynik",

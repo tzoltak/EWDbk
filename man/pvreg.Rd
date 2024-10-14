@@ -20,6 +20,43 @@ pvreg(
   rescalePriors = FALSE
 )
 }
+\arguments{
+\item{dane}{lista \emph{ramek danych} z danymi}
+
+\item{parametry}{lista \emph{ramek danych} z parametrami zadań i grup zdających}
+
+\item{fixedEffects}{wektor tekstowy z nazwami zmiennych, które mają zostać
+wykorzystane w modelu warunkującym umiejętności}
+
+\item{nPV}{liczba (naturalna) - liczba PV z indywidualnymi oszacowaniami
+umiejętności, które mają zostać wykorzystane w estymacji}
+
+\item{keepPV}{wartość logiczna - \strong{nie zaimplementowane} - argument
+wyłącznie dla fasadowej zgodności z API \emph{pvreg}}
+
+\item{nJobs}{liczba (naturalna) - liczba równoległych wątków, w których
+ma być prowadzona estymacja; \strong{nie zaimplementowane} - argument wyłącznie
+dla fasadowej zgodności z API \emph{pvreg}}
+
+\item{nItBurn0}{liczba (naturalna) - liczba iteracji pierwszego etapu \emph{burn-in}}
+
+\item{nItBurn1}{liczba (naturalna) - liczba iteracji drugiego etapu \emph{burn-in}}
+
+\item{nItFinal}{liczba (naturalna) - liczba iteracji ostatnie etapu
+estymacji}
+
+\item{echo}{liczba (naturalna) - 0 oznacza brak zwracania na konsolę
+informacji o procesie estymacji, większe wartości stopniowo zwiększają
+poziom szczegółowości informacji zwracanych na konsoli}
+
+\item{methodMultilevelPriors}{ciąg znaków}
+
+\item{rescalePriors}{wartość logiczna}
+}
+\value{
+\emph{ramka danych} zawierająca oszacowania średnich wyników szkół
+\emph{na wejściu}, EWD, ich błędów standardowych i kowariancji
+}
 \description{
-Proba sportowania programu Bartka Kondratka pod R
+Próba (nieudana) implementacji \emph{pvreg} w R.
 }

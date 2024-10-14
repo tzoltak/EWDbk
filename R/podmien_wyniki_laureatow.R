@@ -1,10 +1,32 @@
+#' @title Przygotowywanie danych do obliczenia wskaznikow EWD
+#' @description
+#' Zmienia wartości zmiennych opisujących wybór tematów rozprawki i punktację
+#' (pseudo)kryteriów rozprawki laureatom poszczególnych części egzaminu.
+#' @param dane ramka danych zawierająca wyniki egzaminu (oraz informacje
+#' o (pseudo)kryteriach oceny jako atrybut *czesciEgzaminu*), zwrócona przez
+#' [przygotuj_dane_do_skalowania()]
+#' @param tematyLaureatow ramka danych opisująca, jakie tematy rozprawki należy
+#' przypisać laureatom w poszczególnych częściach egzaminu, zwrócona przez
+#' [wybierz_tematy_dla_laureatow()]
+#' @param zmienneTematy wektor ciągów znaków zawierający nazwy zmiennych
+#' opisujących wybór tematów
+#' @details
+#' Jeśli dla danej części egzaminu (w której były tematy) nie ma wskazanej nazwy
+#' zmiennej kodującej wybór tematu, który należy przypisać laureatom, to
+#' przypisuje im maksymalne wyniki z najczęściej wybieranego tematu spośród tych,
+#' dla których w modelu skalowania nie ma zmiennych opisujących ich wybór.
+#' @return ramka danych przekazana argumentem `dane`, w której odpowiednio
+#' zmieniono laureatom wartości zmiennych opisujących wybór tematu rozprawki
+#' i punktację (pseudo)kryteriów rozprawki
+#' @seealso [przygotuj_dane_do_ewd_bk()],
 #' @importFrom dplyr %>% .data arrange count desc distinct group_by left_join mutate select
 #' @importFrom tidyr pivot_longer
-# Jeśli dla danej części egzaminu (w której były tematy) nie ma wskazanej nazwy
-# zmiennej kodującej wybór tematu, który należy przypisać laureatom, to
-# przypisuje im maksymalne wyniki z najczęściej wybieranego tematu spośród tych,
-# dla których w modelu skalowania nie ma zmiennych opisujących ich wybór.
 podmien_wyniki_laureatow = function(dane, tematyLaureatow, zmienneTematy) {
+  stopifnot(is.data.frame(dane),
+            "czesciEgzaminu" %in% names(attributes(dane)),
+            "id_obserwacji" %in% names(dane),
+            is.data.frame(tematyLaureatow),
+            is.character(zmienneTematy), !anyNA(zmienneTematy))
   if (nrow(tematyLaureatow) == 0) {
     return(dane)
   }

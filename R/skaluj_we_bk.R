@@ -1,4 +1,17 @@
-#' @title Obliczanie latentnych wskaznikow EWD szkol maturalnych
+#' @title Skalowanie wynikow egzaminu na wejsciu w celu uzyskania parametrow zadan
+#' @description
+#' Funkcja przeprowadza skalowanie wyników egzaminu *na wejściu* (egzaminu
+#' ósmoklasisty, ew. egzaminu gimnazjalnego), z wykorzystaniem *Staty*
+#' i pakietu *uirt*, w celu uzyskania parametrów zadań i grup zdających,
+#' które zostaną następnie wykorzystane w estymacji wskaźników EWD
+#' z wykorzystaniem *pvreg*.
+#' @seealso [znajdz_skale()], [przygotuj_dane_do_skalowania()],
+#' [skaluj_az_dobrze()]
+#' @inheritParams skaluj_matura_bk
+#' @inheritParams skaluj_uirt
+#' @inheritParams skaluj_az_dobrze
+#' @inherit skaluj_matura_bk details
+#' @inherit skaluj_matura_bk return
 #' @importFrom dplyr %>% .data arrange bind_rows group_by mutate rename_with select summarise
 #' @export
 skaluj_we_bk <- function(rokEWD,
@@ -13,17 +26,37 @@ skaluj_we_bk <- function(rokEWD,
                          uzyjRozkladowAPrioriDlaZadan3PL = list(a = c(1.5, 2),
                                                                 b = c(0,   2.5),
                                                                 c = c(2.5, 5.5)),
-                         kryteriaUsuwaniaZadan = list(absA = 0.1,
-                                                      absB = 10),
+                         kryteriaUsuwaniaZadan = c(absA = 0.1, absB = 10),
                          src = NULL) {
   stopifnot(is.numeric(rokEWD), length(rokEWD) == 1,
-            is.numeric(skale) | is.character(skale), length(skale) > 0,
+            is.numeric(skale) || is.character(skale), length(skale) > 0,
+            is.logical(skalujTylkoGdyBrakSkalowan),
+            length(skalujTylkoGdyBrakSkalowan) == 1,
+            skalujTylkoGdyBrakSkalowan %in% c(TRUE, FALSE),
+            is.logical(zapisz), length(zapisz) == 1, zapisz %in% c(TRUE, FALSE),
             is.character(katalogSurowe), length(katalogSurowe) == 1,
+            is.logical(nadpiszWynikiSkalowaniaNaDysku),
+            length(nadpiszWynikiSkalowaniaNaDysku) == 1,
+            nadpiszWynikiSkalowaniaNaDysku %in% c(TRUE, FALSE),
+            is.numeric(maxNIter), length(maxNIter) == 1, maxNIter > 0,
+            is.list(uzyjRozkladowAPrioriDlaZadan3PL) || is.null(uzyjRozkladowAPrioriDlaZadan3PL),
+            is.numeric(kryteriaUsuwaniaZadan),
+            length(kryteriaUsuwaniaZadan) == 2,
+            !anyNA(kryteriaUsuwaniaZadan), all(kryteriaUsuwaniaZadan >= 0),
+            all(c("absA", "absB") %in% names(kryteriaUsuwaniaZadan)),
             dplyr::is.src(src) | is.null(src))
   stopifnot(as.integer(rokEWD) == rokEWD,
+            as.integer(maxNIter) == maxNIter,
             dir.exists(katalogSurowe))
-  if (rokEWD > 2023) {
-    stop("Funkcja nie obsługuje skalowania dla egzaminów po 2023 r.")
+  if (is.list(uzyjRozkladowAPrioriDlaZadan3PL)) {
+    stopifnot(all(names(uzyjRozkladowAPrioriDlaZadan3PL) %in% c("a", "b", "c")),
+              !duplicated(names(uzyjRozkladowAPrioriDlaZadan3PL)),
+              all(sapply(uzyjRozkladowAPrioriDlaZadan3PL, is.numeric)),
+              all(sapply(uzyjRozkladowAPrioriDlaZadan3PL, length) == 2),
+              all(sapply(uzyjRozkladowAPrioriDlaZadan3PL, is.finite)))
+  }
+  if (rokEWD > 2024) {
+    stop("Funkcja nie obsługuje skalowania dla lat obliczania wskaźników EWD późniejszych niż 2024.")
   }
 
   # zbieranie informacji o skalach i skalowaniach

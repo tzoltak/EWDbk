@@ -2,7 +2,7 @@
 % Please edit documentation in R/skaluj_matura_bk.R
 \name{skaluj_matura_bk}
 \alias{skaluj_matura_bk}
-\title{Obliczanie latentnych wskaznikow EWD szkol maturalnych}
+\title{Skalowanie wynikow matury w celu uzyskania parametrow zadan}
 \usage{
 skaluj_matura_bk(
   rokEWD,
@@ -13,10 +13,85 @@ skaluj_matura_bk(
   nadpiszWynikiSkalowaniaNaDysku = FALSE,
   maxNIter = 1000L,
   uzyjRozkladowAPrioriDlaZadan3PL = list(a = c(1.5, 2), b = c(0, 2.5), c = c(2.5, 5.5)),
-  kryteriaUsuwaniaZadan = list(absA = 0.1, absB = 10),
+  kryteriaUsuwaniaZadan = c(absA = 0.1, absB = 10),
   src = NULL
 )
 }
+\arguments{
+\item{rokEWD}{rok egzaminu maturalnego (identyfikujący rocznik absolwentów)}
+
+\item{skale}{wektor ciągów znaków z wyrażeniami regularnymi
+identyfikującymi skale (po kolumnie \code{opis} w bazie danych) lub wektor
+liczbowy z \code{id_skali} - wskazuje skale, które mają zostać wykorzystane do
+skalowania; domyślna wartość powinna działać poprawnie (tworząc wyrażenie
+regularne na podstawie wartości argumentu \code{rokEWD}) w latach nie
+zahaczających (zakresem danych) o zmiany formuły egzaminów}
+
+\item{skalujTylkoGdyBrakSkalowan}{wartość logiczna - czy wykluczyć ze
+skalowania wszystkie skale, które mają już zapisane w bazie wyniki
+\strong{jakiegokolwiek} skalowania?}
+
+\item{zapisz}{wartość logiczna - czy zapisać obliczone wartości parametrów
+i oszacowania umiejętności na dysku w formie pliku .RData?}
+
+\item{katalogSurowe}{ciąg znaków - ścieżka do katalogu, w którym znajdują
+się dane z wynikami surowymi egzaminów, pobranymi przy pomocy funkcji
+\link[EWDdane:pobierz_wyniki_surowe]{EWDdane::pobierz_wyniki_surowe}}
+
+\item{nadpiszWynikiSkalowaniaNaDysku}{wartość logiczna - czy napotkawszy
+zapisane na dysku wyniki skalowania zapisane przez \emph{uirt} funkcja powinna
+przeprowadzić skalowanie i je nadpisać (\code{TRUE}), czy wczytać już istniejące,
+nie przeprowadzając skalowania (\code{FALSE})?}
+
+\item{maxNIter}{liczba (naturalna) - maksymalna liczba iteracji estymacji
+\emph{uirt} w \emph{Stacie}}
+
+\item{uzyjRozkladowAPrioriDlaZadan3PL}{lista z wektorami dwuelementowymi
+w formacie \code{c(wartoscOczekiwana, odchylenieStandardowe)} rozkładów \emph{a priori}
+parametrów zadań 3PL, używanych przez \emph{uirt} w estymacji; lista może zawierać
+elementy o nazwach \code{a}, \code{b} lub \code{c} - najlepiej wszystkie z nich; jeśli
+\emph{uirt} ma nie używać rozkładów a priori dla zadań 3PL, należy jako wartość
+tego argumentu podać \code{NULL} (ale co do zasady nie jest to dobre rozwiązanie);
+co do zasady domyślną wartość tego argumentu należy uznać za rozsądną}
+
+\item{kryteriaUsuwaniaZadan}{dwuelementowy wektor liczbowy, o nazwach
+elementów \code{absA} i \code{absB} - zadania, których wyestymowane wartości
+bezwzględne parametrów będą, odpowiednio: dyskryminacji (\code{absA}) - mniejsze,
+niż podana wartość lub trudności (\code{absB}) - większe, niż podana wartość,
+zostaną usunięte z estymacji; usuwanie zadań można efektywnie wyłączyć
+poprzez podanie argumentu \code{kryteriaUsuwaniaZadan=c(absA=0, absB=Inf)}, ale
+nie jest to dobry pomysł, gdyż używana przez \emph{uirt} metoda szacowania błędów
+standardowych parametrów zadań nie działa dobrze dla zadań z dyskryminacją
+bliską 0 (co zwykle idzie w parze z bardzo dużymi co do wartości bezwzględnej
+oszacowaniami trudności); co do zasady domyślną wartość tego argumentu należy
+uznać za rozsądną; uwaga, niezależnie od podanej wartości \code{absA} \strong{\emph{uirt}
+zawsze będzie usuwał zadania o ujemnych wartościach dyskryminacji!}}
+
+\item{src}{połączenie z bazą danych IBE zwracane przez funkcję \code{\link[ZPD:polacz]{ZPD::polacz()}};
+jeśli nie podane, podjęta zostanie próba automatycznego nawiązania połączenia
+(poprzez wywoływanie funkcji \code{\link[ZPD:polacz]{ZPD::polacz()}} z domyślnymi argumentami)}
+}
+\value{
+lista klasy \emph{listaWynikowSkalowania}
+}
 \description{
-Obliczanie latentnych wskaznikow EWD szkol maturalnych
+Funkcja przeprowadza skalowanie wyników matury, z wykorzystaniem \emph{Staty}
+i pakietu \emph{uirt}, w celu uzyskania parametrów zadań i grup zdających,
+które zostaną następnie wykorzystane w estymacji wskaźników EWD
+z wykorzystaniem \emph{pvreg}.
+}
+\details{
+Napotkawszy w wynikach skalowania zadania spełniające kryteria do usunięcia
+funkcja usuwa je (wszystkie na raz) i przeprowadza skalowanie jeszcze raz
+(\emph{do skutku}). Informacja o usunięciu kryteriów jest zapisywana w wynikach
+skalowania, aby umożliwić odpowiednie zmodyfikowanie skali przy zapisie
+wyników skalowania do bazy danych.
+
+Wczytywanie wyników skalowania do bazy odbywa się z wykorzystaniem funkcji
+\link[ZPDzapis:zapisz_skalowanie]{ZPDzapis::zapisz_skalowanie} z wykorzystaniem wyników skalowania zapisanych
+na dysku w formie plików .RData.
+}
+\seealso{
+\code{\link[=znajdz_skale]{znajdz_skale()}}, \code{\link[=przygotuj_dane_do_skalowania]{przygotuj_dane_do_skalowania()}},
+\code{\link[=skaluj_az_dobrze]{skaluj_az_dobrze()}}
 }

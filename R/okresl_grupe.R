@@ -1,3 +1,43 @@
+#' @title Przetwarzanie danych z wynikami egzaminow
+#' @description
+#' Dodaje do danych zmienną opisującą przypisanie uczniów do grup wyróżnianych
+#' w procedurze skalowania wyników matury lub egzaminu na wejściu.
+#' @param dane ramka danych z wynikami egzaminu
+#' @param rokWy liczba (całkowita) - rok matury (i jednocześnie rok definiujący
+#' jednoroczny wskaźnik EWD, na potrzeby obliczania którego ma być
+#' przeprowadzone skalowanie, do którego przygotowywane są dane)
+#' @param katalogSurowe ciąg znaków - ścieżka do katalogu, w którym znajdują
+#' się dane z wynikami surowymi egzaminów oraz *danymi kontekstowymi*, pobranymi
+#' przy pomocy funkcji [EWDdane::pobierz_wyniki_surowe]
+#' @param typSzkoly `"LO"`, `"T"` albo `NULL` - jeśli przetwarzane dane dotyczą
+#' egzaminu na wejściu, typ szkoły, który obejmują dane - niezbędny, aby
+#' określić, *dane kontekstowe* z którego roku opisują uczniów o typowej
+#' długości toku kształcenia, a z którego roku opisują uczniów o toku
+#' kształcenia wydłużonym o rok (jeśli przetwarzane dane dotyczą matury,
+#' należy podać `NULL`)
+#' @param rokWe liczba (całkowita) albo `NULL` - jeśli przetwarzane dane dotyczą
+#' egzaminu na wejściu, typ szkoły, który obejmują dane - niezbędny, aby
+#' określić, *dane kontekstowe* z którego roku opisują uczniów o typowej
+#' długości toku kształcenia, a z którego roku opisują uczniów o toku
+#' kształcenia wydłużonym o rok (jeśli przetwarzane dane dotyczą matury,
+#' należy podać `NULL`)
+#' @param echo wartość logiczna - czy wyświetlić na konsoli tabelę z rozkładem
+#' grup
+#' @details
+#' W odniesieniu do matury wyróżniane grupy to:
+#' -  dla przedmiotów obowiązkowych: *LO PP i PR*, *LO PP*, *T PP i PR*, *T PP*
+#'    i *inne*;
+#' -  dla przedmiotów nieobowiązkowych: *LO PR*, *T PR* i *inne*.
+#' W odniesieniu do egzaminów na wejściu (egzamin ósmoklasisty lub gimnazjalny):
+#' -  dla LO: *LO*, *inne*, *LOw*, *innew* (dwie ostatnie są tworzone przez
+#'    uczniów zdających egzamin w roku o jeden wcześniejszym, niż wynikałoby to
+#'    z długości toku kształcenia w LO),
+#' -  dla techników: *T*, *inne*, *Tw*, *innew* (dwie ostatnie są tworzone przez
+#'    uczniów zdających egzamin w roku o jeden wcześniejszym, niż wynikałoby to
+#'    z długości toku kształcenia w technikum).#'
+#' @return ramka danych przekazana argumentem `dane`, z dodaną zmienną *grupa*
+#' opisującą przypisanie uczniów do grup wyróżnianych w skalowaniu
+#' @seealso [wyswietl_rozklad_grup()], [przygotuj_dane_do_skalowania()]
 #' @importFrom dplyr %>% .data anti_join case_when filter left_join mutate rename select
 okresl_grupe = function(dane, rokWy, katalogSurowe, typSzkoly = NULL,
                         rokWe = NULL, echo = TRUE) {

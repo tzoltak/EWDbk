@@ -1,11 +1,36 @@
+#' @title Przygotowywanie danych do obliczenia wskaznikow EWD
+#' @description
+#' Przygotowuje zestaw danych do obliczania latentnych wskaźników EWD w formie
+#' odpowiadającej interfejsowi wejściowemu *pvreg*.
+#' @inheritParams pobierz_parametry_egzaminow
+#' @inheritParams oblicz_ewd_bk
+#' @param typSzkoly ciąg znaków - typ szkoły (co do zasady `"LO"` lub `"T"`) -
+#' wykorzystywany do odfiltrowania parametrów modeli skalowania opisujących
+#' rozkłady umiejętności w ramach grup dotyczących tylko tych grup, które
+#' obejmują uczniów szkół danego typu
+#' @param tematyLaureatowMatura ramka danych zwrócona przez
+#' [wybierz_tematy_dla_laureatow()]
+#' @param parametryMatura ramka danych z parametrami modelu skalowania matury
+#' (p. [pobierz_parametry_egzaminow])
+#' @param tematyLaureatowWejscie ramka danych zwrócona przez
+#' [wybierz_tematy_dla_laureatow()]
+#' @param parametryWejscie ramka danych z parametrami modelu skalowania egzaminu
+#' na wejściu (p. [pobierz_parametry_egzaminow])
+#' @param minLUcznSzk liczba (naturalna) - szkoły z liczbą uczniów (wchodzących
+#' do obliczeń) poniżej zadanej liczby zostaną wykluczone z estymacji
+#' @return lista ramek danych o następujących elementach: *matura*, *wejscie*,
+#' *warunkujace*, *cechySzkol*, z których trzy pierwsze zawierają dane do
+#' wykorzystania w obliczeniach przez *pvreg* a ostatnia informacje przydatne
+#' w obróbce wyników i przygotowywaniu ich do zapisania do bazy danych
+#' @seealso [przygotuj_dane_do_skalowania()], [podmien_wyniki_laureatow()],
+#' [wyswietl_rozklad_grup()], [oblicz_ewd_bk()], [unormuj_parametry_egzaminow()]
 #' @importFrom stats na.omit
 #' @importFrom dplyr %>% .data add_count all_of distinct filter inner_join left_join matches mutate select semi_join
 przygotuj_dane_do_ewd_bk = function(skale, rokEWD, typSzkoly,
                                     tematyLaureatowMatura, parametryMatura,
                                     tematyLaureatowWejscie, parametryWejscie,
                                     katalogSurowe, minLUcznSzk, src) {
-  stopifnot(is.data.frame(skale),
-            nrow(skale) == 1,
+  stopifnot(is.data.frame(skale), nrow(skale) == 1,
             "id_skali_matura" %in% names(skale),
             "id_skali_we" %in% names(skale),
             "rodzaj_egzaminu_matura" %in% names(skale),
@@ -13,7 +38,13 @@ przygotuj_dane_do_ewd_bk = function(skale, rokEWD, typSzkoly,
             "typ_szkoly" %in% names(skale),
             "lata" %in% names(skale),
             is.numeric(rokEWD), length(rokEWD) == 1,
-            is.character(katalogSurowe), length(katalogSurowe) == 1)
+            is.character(typSzkoly), length(typSzkoly) == 1, !anyNA(typSzkoly),
+            is.data.frame(tematyLaureatowMatura),
+            is.data.frame(parametryMatura),
+            is.data.frame(tematyLaureatowWejscie),
+            is.data.frame(parametryWejscie),
+            is.character(katalogSurowe), length(katalogSurowe) == 1,
+            is.numeric(minLUcznSzk), length(minLUcznSzk) == 1, minLUcznSzk > 0)
 
   zmienneZadaniaMatura = unique(na.omit(parametryMatura$kryterium))
   zmienneTematyMatura = unique(grep("^t[[:digit:]]+_",
