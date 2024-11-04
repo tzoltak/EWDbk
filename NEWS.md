@@ -17,6 +17,15 @@
 - Doprowadzić do poprawnego działania część kodu będącą portem `pvreg` do R
   (w tej chwili ta część pakietu jest wyłączona z użytku).
 
+
+# EWDbk 0.2.1 (04.11.2024)
+
+- Dodano sprawdzanie przez `pobierz_parametry_egzaminow()`, czy wśród kolumn
+  zwróconych przez `ZPD::pobierz_parametry()` jest też *id_elementu* (po
+  tajemniczej przygodzie ze zmianami definicji widoków w bazie, która
+  doprowadziła do braku tejże kolumny i w konsekwencji niemożliwości pobrania
+  z bazy kowariancji, co jednak wywoływało błąd dopiero dużo dale w procesie).
+
 # EWDbk 0.2 (14.10.2024)
 
 - Nowa funkcja `agreguj_ewd()` pozwala obliczyć *wieloletnie* wskazniki EWD

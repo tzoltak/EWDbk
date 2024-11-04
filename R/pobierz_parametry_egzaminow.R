@@ -33,6 +33,7 @@ pobierz_parametry_egzaminow = function(skale, src) {
     filter(.data$id_skali %in% local(skale$id_skali_matura),
            .data$skalowanie %in% local(skale$skalowanie_matura)) %>%
     collect()
+  stopifnot("id_elementu" %in% names(parametryMatura))
   kowariancjeMatura = ZPD::pobierz_skalowania_elementy_kowariancje(src) %>%
     filter(.data$id_elementu1 %in% local(parametryMatura$id_elementu) |
              .data$id_elementu2 %in% local(parametryMatura$id_elementu)) %>%
@@ -43,6 +44,7 @@ pobierz_parametry_egzaminow = function(skale, src) {
     filter(.data$id_skali %in% local(skale$id_skali_we),
            .data$skalowanie %in% local(skale$skalowanie_we)) %>%
     collect()
+  stopifnot("id_elementu" %in% names(parametryWejscie))
   kowariancjeWejscie = ZPD::pobierz_skalowania_elementy_kowariancje(src) %>%
     filter(.data$id_elementu1 %in% local(parametryWejscie$id_elementu) |
              .data$id_elementu2 %in% local(parametryWejscie$id_elementu)) %>%
