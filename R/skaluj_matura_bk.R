@@ -72,8 +72,8 @@ skaluj_matura_bk = function(rokEWD,
               all(sapply(uzyjRozkladowAPrioriDlaZadan3PL, length) == 2),
               all(sapply(uzyjRozkladowAPrioriDlaZadan3PL, is.finite)))
   }
-  if (rokEWD > 2024) {
-    stop("Funkcja nie obsługuje skalowania dla lat obliczania wskaźników EWD późniejszych niż 2024.")
+  if (rokEWD > 2025) {
+    stop("Funkcja nie obsługuje skalowania dla lat obliczania wskaźników EWD późniejszych niż 2025.")
   }
 
   # zbieranie informacji o skalach i skalowaniach

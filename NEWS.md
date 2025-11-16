@@ -17,6 +17,10 @@
 - Doprowadzić do poprawnego działania część kodu będącą portem `pvreg` do R
   (w tej chwili ta część pakietu jest wyłączona z użytku).
 
+# EWDbk 0.2.2 (16.11.2025)
+
+- `skaluj_matura_bk()` i `skaluj_we_bk()` pozwalają skalować wynik do wskaźników
+  EWD obliczanych w 2025 r.
 
 # EWDbk 0.2.1 (04.11.2024)
 
